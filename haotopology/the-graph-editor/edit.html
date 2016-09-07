@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Graph Editor</title>
+    <meta charset="utf-8">
+    <!-- Bower Libraries -->
+    <script src="../bower_components/webcomponentsjs/webcomponents.js"></script>
+    <script src="../bower_components/react/react-with-addons.js"></script>
+    <script src="../bower_components/react/react-dom.js"></script>
+    <script src="../bower_components/klayjs-noflo/klay-noflo.js"></script>
+    <script src="../bower_components/hammerjs/hammer.min.js"></script>
+    <script src="../bower_components/ease-djdeath/index.js"></script>
+    <script src="../bower_components/react.animate-djdeath/react.animate.js"></script>
+    
+    <script src="jquery.js"></script><!-- add by haoning-->
+    <!-- Browserify Libraries -->
+    <script src="../build/noflo.js"></script>
+    <!-- Custom elements -->
+    <link rel="import" href="../bower_components/polymer/polymer.html">
+    <link rel="import" href="./the-graph-editor.html">
+    <link rel="import" href="../the-graph-nav/the-graph-nav.html">
+    <!-- Fonts -->
+    <!--link rel="stylesheet" href="../bower_components/font-awesome/css/font-awesome.min.css"-->
+    <!--link href='http://fonts.googleapis.com/css?family=Source+Code+Pro:400' rel='stylesheet' type='text/css'-->
+    <link rel="stylesheet" href="../bower_components/font-awesome/css/fontello.css">
+    <style>
+      @font-face {
+        /* we want the svg version */
+        font-family: 'FontAwesomeSVG';
+        src: url('../bower_components/font-awesome/font/fontello.svg') format('svg'),
+          url('../bower_components/font-awesome/font/fontello.eot') format('embedded-opentype'), 
+          url('../bower_components/font-awesome/font/fontello.woff') format('woff'), 
+          url('../bower_components/font-awesome/font/fontello.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+      }
+    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
+    <style>
+      html, body {
+        width: 100%;
+        height: 100%;
+      }
+      body {
+        background-color: hsl(189, 47%, 6%);
+        font-family: "SourceCodePro",Helvetica,Arial,sans-serif;
+        overflow: hidden;
+      }
+      #editor {
+        background-color: transparent;
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+      #nav {
+        position: absolute; 
+        right: 0px; 
+        bottom: 0px;
+      }
+      #testing {
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <the-graph-editor id="editor" 
+      width="800" height="600" 
+      grid="72" 
+      snap="36" 
+      theme="light">
+    </the-graph-editor>
+    <the-graph-nav id="nav" width="216" height="162"></the-graph-nav>
+    <div id="testing">
+      <!--button id="autolayout">autolayout</button-->
+      <button id="theme">皮肤</button>
+      <!--button id="focus">focus</button>
+      <button id="refresh">refresh</button>
+      <button id="show_graph">show_graph</button-->
+
+      <button id="create_vm">新增虚拟机</button>
+      <button id="create_switch">新增交换机</button>
+      <!--button id="create_switch_ext">新增ext交换机</button>
+      <button id="create_switch_shared">新增shared交换机</button>
+      <button id="create_switch_ext_shared">新增ext_shared交换机</button-->
+      <button id="create_router">新增路由器</button>
+      <button id="test">test</button>
+    </div>
+    <div id="loading" style="position:absolute; top:10px; left:10px; background-color:white; padding:10px; border-radius:5px;">
+      <img src="loading.gif"/>
+      <div id="loading-message">loading custom elements...</div>
+    </div>
+    <script type="text/javascript">
+      Polymer.veiledElements = ["the-graph-editor"];
+      window.addEventListener('polymer-ready', function() {
+        "use strict";
+        var loadingMessage = document.getElementById("loading-message");
+        loadingMessage.innerHTML = "loading graph data...";
+        window.loadGraph = function (json) {
+          var loading = document.getElementById("loading");
+          loading.parentNode.removeChild(loading);
+
+          var editor = document.getElementById('editor');
+          /*填充右边form
+          *form_node为节点json
+          *operate_type ：新增-修改
+          */
+          var make_node_form=function(form_node,operate_type){
+          	//debug
+          	return;
+          	window.parent.toporight.document.getElementById("node_label").value=form_node.metadata.label;
+ 			if(form_node.metadata.type=="vm"){
+ 			    window.parent.toporight.document.getElementById("node_type").value="vm";
+ 			    window.parent.toporight.document.getElementById("node_id").value=form_node.metadata.vm_id;
+ 			    window.parent.toporight.document.getElementById("show_operation").innerHTML=operate_type+"虚拟机";
+ 			}else if(form_node.metadata.type=="switch"){
+ 				window.parent.toporight.document.getElementById("node_type").value="switch";
+ 			    window.parent.toporight.document.getElementById("node_id").value=form_node.metadata.switch_id;
+ 			    window.parent.toporight.document.getElementById("switch_shared").value=typeof(form_node.metadata.shared)=="undefined"?"false":form_node.metadata.shared;
+ 			    window.parent.toporight.document.getElementById("switch_ext").value=typeof(form_node.metadata.router_external)=="undefined"?"false":form_node.metadata.router_external;
+	          	window.parent.toporight.document.getElementById("show_operation").innerHTML=operate_type+"交换机";
+ 			}else if(form_node.metadata.type=="router"){
+ 				window.parent.toporight.document.getElementById("node_type").value="router";
+ 			    window.parent.toporight.document.getElementById("node_id").value=form_node.metadata.router_id;
+ 			    window.parent.toporight.document.getElementById("show_operation").innerHTML=operate_type+"路由器";
+ 			}
+ 		//	if(window.parent.toporight.document.getElementById("node_id").value=="undefined"){
+ 				window.parent.toporight.document.getElementById("element_id").value=form_node.id;//找js元素用的
+ 		//	}
+ 		
+          }
+          //节点单击
+           /*
+            add by ajc
+            添加自定义事件listener
+          */
+          editor.addEventListener('nodes-select', function(e){
+           // console.log('选中的node >>>', JSON.stringify(e.detail,null,'\t'));
+            var nodes=e.detail;
+            var lastnode=nodes[nodes.length-1];
+            console.log('选中的node >>>', JSON.stringify(lastnode,null,'\t'));
+            make_node_form(lastnode,"修改");
+          })
+          
+          //节点上的端点拖拽
+		  editor.edge_temp = "no_value";
+          editor.addEventListener('the-graph-edge-start', function(e){
+            //console.log('edges >>>', e.type, e.detail)
+           // console.log(e.detail.port.process+">>>>"+e.detail.port.port+">>>>>"+e.detail.route+">>>>>"+e.detail.isIn);
+            if(editor.edge_temp=="no_value"){
+            	editor.edge_temp=e.detail;
+            }else{
+        	//	console.log("###################"+JSON.stringify(edge_temp));
+        		var new_edge= {};
+        		if(editor.edge_temp.isIn==e.detail.isIn){
+        			alert("不能同时是出，也不能同时是入");
+        		}else{
+        				//	console.log("editor.edge_temp:::::::"+JSON.stringify(editor.edge_temp));
+	        		if(editor.edge_temp.isIn){
+	        		 //  console.log("inIn###############");
+	        			new_edge.tgt={"process":editor.edge_temp.port.process,"port":editor.edge_temp.port.port};
+	        			new_edge.src={"process":e.detail.port.process,"port":e.detail.port.port};
+	        			//console.log("detail:"+JSON.stringify(editor.edge_temp));
+	        			if(typeof(editor.edge_temp.route)!="undefined"){
+	        				new_edge.metadata={"route":editor.edge_temp.route};
+	        			}
+	        		}else{
+	        			//console.log("inout###############");
+	        			new_edge.src={"process":editor.edge_temp.port.process,"port":editor.edge_temp.port.port};
+	        			new_edge.tgt={"process":e.detail.port.process,"port":e.detail.port.port};
+	        			if(typeof(e.detail.route)!="undefined"){
+	        				new_edge.metadata={"route":e.detail.route};
+	        			}
+	        		//	new_edge.metadata=!e.detail.route?{"route":"5"}:{"route":e.detail.route};
+	        		//	new_edge.metadata=typeof(e.detail.route) ==undefined?{"route":"5"}:{"route":e.detail.route};
+	        		}
+	            	console.log("new_edge-->>"+JSON.stringify(new_edge));
+	            	editor.edge_temp="no_value";
+        		}
+            }
+          })
+
+		  //图像json数据
+          var graph = json.data ? JSON.parse(json.data.files['noflo.json'].content) : json;
+          var graphString = JSON.stringify(graph);
+          editor.graph = graph;
+          // Attach editor to nav
+          var nav = document.getElementById('nav');
+          nav.editor = editor;
+          var errorNodeId = null;
+          // modified  by haoning 告警
+          var makeRandomError = function () {
+            if (!editor.nofloGraph) { return; }
+            if (errorNodeId) {
+              editor.removeErrorNode(errorNodeId);
+            }
+            var nodes = editor.nofloGraph.nodes;
+            nodes.forEach(function (node) {//add by hao
+            	if(node.metadata.vm_status=="ERROR"){
+            		errorNodeId = node.id;
+	                editor.addErrorNode(errorNodeId);
+	                editor.updateErrorNodes();
+            	}
+            });
+           
+          };
+          window.setInterval(makeRandomError, 3551);
+          makeRandomError();
+          
+          /*document.getElementById("autolayout").addEventListener("click", function () {
+            editor.triggerAutolayout();
+          });*/
+          //背景
+          var theme = "dark";
+          document.getElementById("theme").addEventListener("click", function () {
+            theme = (theme==="dark" ? "light" : "dark");
+            editor.theme = theme;
+          });
+		  document.getElementById("test").addEventListener("click", function () {
+				//window.parent.topomain.
+			//	console.log("testst--->");
+			//	var delete_node=editor.nofloGraph.nodes[0];
+			//	editor.nofloGraph.nodes.splice(0,1);//(delete_node);
+			//	editor.nofloGraph.nodes[0].metadata.label="hahahah";
+			//	window.parent.toporight.test_frame();
+		//		editor.updateIcon("dom/vm1", "switch");//修改图标
+			
+        
+				console.log(editor.nofloGraph);
+				
+				 var new_vm={
+	              id: "111",//后台真正不使用这个随机id
+	              component: "vm",
+	              metadata: {
+	                type:"vm",
+	                router_external:"true",
+	                shared:"true",
+	                label: "vm",
+	                x: 0,
+	                y: 0
+	              }
+	            };
+	            var new_switch={
+	              id: "222",//后台真正不使用这个随机id
+	              component: "switch",
+	              metadata: {
+	                type:"switch",
+	                router_external:"true",
+	                shared:"true",
+	                label: "switch",
+	                x: 0,
+	                y: 0
+	              }
+	            };
+	            editor.nofloGraph.nodes.push(new_vm);
+	            editor.nofloGraph.nodes.push(new_switch);
+	            var new_edge=new Object();
+	            var new_from=new Object();
+	            new_from.node="111";
+	            new_from.port="out";
+	            new_edge.from=new_from;
+	            var new_to=new Object();
+	            new_to.node="222";
+	            new_to.port="in";
+	            new_edge.to=new_to;
+	            var new_metadata=new Object();
+	            new_metadata.route=5;
+	            new_edge.metadata=new_metadata;
+	          	editor.nofloGraph.edges.push(new_edge);
+	           // editor.nofloGraph.removeNode("111");
+            	editor.rerender();
+		   });
+          // Focus a node
+         /* document.getElementById("focus").addEventListener("click", function () {
+            var nodes = editor.nofloGraph.nodes;
+            var randomNode = nodes[Math.floor(Math.random()*nodes.length)];
+            editor.focusNode(randomNode);
+          });
+
+          // Refresh graph
+          document.getElementById("refresh").addEventListener("click", function () {
+            if (!editor.nofloGraph) { return; }
+            editor.graph = JSON.parse(graphString);
+            editor.triggerAutolayout();
+          });
+           document.getElementById("show_graph").addEventListener("click", function () {
+            console.log(editor.graph);
+          });
+          */
+          
+         // document.getElementById('create_node').addEventListener('click', function(this_event){
+          //创建节点
+          var x_distance=300;
+          var y_distance=50;
+          var distance=35;
+          function create_node(this_event){
+            //console.log(this_event.srcElement.id);
+            var node_type="vm";//默认类型vm
+            if(this_event.srcElement.id){//根据按钮的id进行不同的操作
+            	node_type=this_event.srcElement.id.split("_").length>1?this_event.srcElement.id.split("_").slice(1).join("_"):"vm";
+            }
+            //console.log("node_type:"+node_type);
+            var id = Math.random().toString(36).substr(2);
+            x_distance=x_distance+distance;
+            y_distance=y_distance+distance;
+            var new_node={
+              id: id,//后台真正不使用这个随机id
+              component: node_type,
+              metadata: {
+                type:node_type,
+                router_external:"true",
+                shared:"true",
+                label: id,
+                x: x_distance,
+                y: y_distance
+              }
+            };
+            make_node_form(new_node,"新建");//右边form
+            editor.nofloGraph.nodes.push(new_node);
+            editor.rerender();
+            var make_icon=function(onenode){//更新图标
+            	if(onenode.metadata.type=="switch"){
+            		return "switch";
+	      		if(onenode.metadata.router_external=="true"&&onenode.metadata.shared=="true"){
+	      			return "switch_ext_shared";
+	      		}else if(onenode.metadata.router_external=="true"){
+	      			return "switch_ext";
+	      		}else if(onenode.metadata.shared=="true"){
+	      			return "switch_shared";
+	      		}else{
+	      			return "switch";
+	      		}
+	          	}else{
+	          		return onenode.metadata.type
+	          	}
+            }
+            editor.updateIcon(id, make_icon(new_node));//修改图标
+          }
+          //);
+          document.getElementById('create_vm').addEventListener('click', create_node);
+          document.getElementById('create_switch').addEventListener('click', create_node);
+          document.getElementById('create_router').addEventListener('click', create_node);
+          //document.getElementById('create_switch_ext').addEventListener('click', create_node);
+         // document.getElementById('create_switch_shared').addEventListener('click', create_node);
+          //document.getElementById('create_switch_ext_shared').addEventListener('click', create_node);
+		  //add by hao
+		  
+		  
+          // Log some stuff
+          window.editor = editor;
+          window.old_editor = editor;
+          console.log(editor);
+          /*window.setTimeout(function () {//todo 1秒后自动layout，这里做的不好换种方式
+          	editor.triggerAutolayout();
+          },1000);*/
+        };
+        
+        window.loadAwGraph=function (json) {//add by hao
+           console.log("------------->>>>");
+           console.log("loadAwGraph:"+JSON.stringify(graph));
+        window.loadGraph(json.data.data);
+			
+		}
+		/*###########数据获取第一种方法################### begin*/
+        
+       /* var body = document.querySelector('body');
+        var script = document.createElement('script');
+        script.type = 'application/javascript';
+        //script.src = 'photobooth.json.js';
+        script.src = 'openstack_small.js';
+        //script.src = 'clock.json.js';
+        // Clock
+        // script.src = 'https://api.github.com/gists/7135158?callback=loadGraph';
+       // script.src = 'clock.json.js';
+        // 
+        // script.src = 'photobooth.json.js';
+        // Gesture object building (lots of ports!)
+        // script.src = 'https://api.github.com/gists/7022120?callback=loadGraph';
+        // Gesture data gathering (big graph)
+        // script.src = 'https://api.github.com/gists/7022262?callback=loadGraph';
+        // Edge algo test
+        //script.src = 'https://api.github.com/gists/6890344?callback=loadGraph';
+        body.appendChild(script);*/
+    	/*########################################## end*/
+
+
+/*###########数据获取第二种方法############################### begin*/
+			$.ajax({  
+			type: 'GET',  
+			//url: "abc.js?callback=loadGraph",  
+		//	url: "http://192.168.137.37:8081/awstack-resource/v1/topo?callback=loadGraph", 
+		//	url: "http://192.168.137.37:8081/awstack-resource/v1/topo", 
+				url: "ding.json", 
+			beforeSend: function(request) {
+                        request.setRequestHeader("X-Auth-Token", "fe9b1b3575274c3185dab9779267c3c7");
+                        request.setRequestHeader("Content-type","text/html;charset=utf-8");
+            },
+		/*	success: function(data){  
+				//console.log(JSON.parse(data).data);
+				var loadjson=JSON.parse(data).data.data;
+				console.log(JSON.stringify(loadjson));
+				loadGraph(loadjson);
+			},  */
+			success: function(loadjson){  
+				//console.log(JSON.parse(data).data);
+			//	var loadjson=JSON.parse(data).data.data;
+			//	console.log(loadjson);
+				loadGraph(loadjson);
+			},
+			error:function(e){  
+				alert("error:"+e);  
+			},  
+			dataType: "string"  
+		});  
+/*###########数据获取第二种方法############################### end*/		
+		
+		
+		
+		
+        // Resize to fill window and also have explicit w/h attributes
+        var editor = document.getElementById("editor");
+        var resize = function () {
+          editor.setAttribute("width", window.innerWidth);
+          editor.setAttribute("height", window.innerHeight);
+        };
+        window.addEventListener("resize", resize);
+
+        resize();
+      });
+      
+    </script>
+    
+  </body>
+</html>

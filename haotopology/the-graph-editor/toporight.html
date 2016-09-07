@@ -1,0 +1,119 @@
+<html>
+<head></head>
+
+<script type="text/javascript">
+var test_frame=function(){
+	alert("aaa");
+}
+//改变label显示
+var node_label_change=function (this_event){
+	console.log(this_event.value);
+	var element_id=document.getElementById("element_id").value;
+	console.log("element_id:"+element_id);
+	console.log(window.parent.topomain.editor.nofloGraph.nodes);
+	window.parent.topomain.editor.nofloGraph.nodes.forEach(function (node,index) {//add by hao
+    	if(node.id==element_id){
+    		console.log(node);
+    		console.log("hahahaha"+">>>>"+index);
+    		window.parent.topomain.editor.nofloGraph.nodes[index].metadata.label=this_event.value;
+    		window.parent.topomain.editor.rerender();
+    	}
+    });
+}
+//判断是否是外部交换机，更改图标
+var switch_check_router_external_change=function (this_event){
+	var element_id=document.getElementById("element_id").value;
+	window.parent.topomain.editor.nofloGraph.nodes.forEach(function (node,index) {//add by hao
+    	if(node.id==element_id){
+    		if(this_event.checked=="undefined"||this_event.checked==""||this_event.checked=="false"){
+    			node.metadata.router_external="false";//注意这里一定要加引号
+    		}else{
+    			node.metadata.router_external="true";
+    		}
+    		window.parent.topomain.editor.update_icon(node.id,node);
+    	}
+    });
+}
+//判断是否是共享交换机，更改图标
+var switch_check_shared_change=function (this_event){
+	var element_id=document.getElementById("element_id").value;
+	window.parent.topomain.editor.nofloGraph.nodes.forEach(function (node,index) {//add by hao
+    	if(node.id==element_id){
+    		if(this_event.checked=="undefined"||this_event.checked==""||this_event.checked=="false"){
+    			node.metadata.shared="false";
+    		}else{
+    			node.metadata.shared="true";
+    		}
+    		window.parent.topomain.editor.update_icon(node.id,node);
+    	}
+    });
+}
+//增加网络
+var vm_edges=[];
+var add_switch=function (){
+//	removeEdge();
+/*	console.log("vm_____");
+	console.log(vm_edges);
+	
+	console.log(document.getElementById("vm_net").value);
+	var this_edage=vm_edges[document.getElementById("vm_net").value];
+	console.log("ppppp");
+	console.log(this_edage);*/
+//	var element_id=document.getElementById("element_id").value;
+	var meta = { route: Math.floor(Math.random()*10) };
+	var from_node_id=document.getElementById("element_id").value;
+	var to_node_id=document.getElementById("vm_net").value;
+    console.log(document.getElementById("element_id").value+"----"+document.getElementById("vm_net").value);
+    window.parent.topomain.editor.nofloGraph.edges.forEach(function(edge){
+    	if(edge.from.node==from_node_id){
+    		console.log(edge);
+    		window.parent.topomain.editor.nofloGraph.removeEdge(edge.from.node,edge.from.port,edge.to.node, edge.to.port);
+    	}
+    });
+	window.parent.topomain.editor.nofloGraph.addEdge(from_node_id,"out",to_node_id, "in", meta);
+	
+}
+</script>
+<body>
+<div id="show_operation"></div>
+<div style="display:none">
+页面节点id：<input type="text" name="element_id" id="element_id" value="" readonly/><br>
+类型:<input type="text" name="node_type" id="node_type" value="" readonly/><br>
+<hr>
+</div>
+
+<div id="vm_div" style="display:none">
+	<form action="a.jsp" >
+	虚拟机id:<input type="text" name="vm_id" id="vm_id" value="" readonly/><br>
+	名称:<input type="text" name="vm_label" id="vm_label" value="" onkeyup="node_label_change(this)"/><br>
+	网络:	<select id="vm_net"></select><input type="button" onclick="add_switch()" value="切换网络"></br>
+	网络列表：
+	<div id="vm_net_list">
+		
+	</div>
+	<br>
+	<input type="submit" value="保存这个vm"/>
+	</form>
+</div>
+<div id="switch_div" style="display:none">
+	<form action="b.jsp" >
+	<div id="show_operation"></div>
+	交换机id:<input type="text" name="node_id" id="switch_id" value="" readonly/><br>
+	共享:<input type="checkbox" name="switch_shared" id="switch_shared" onclick="switch_check_shared_change(this)"/><br>
+	外部:<input type="checkbox" name="switch_ext" id="switch_ext" onclick="switch_check_router_external_change(this)"/><br>
+	名称:<input type="text" name="switch_label" id="switch_label" value="" onkeyup="node_label_change(this)"/><br>
+	<input type="submit" value="保存这个交换机" />
+	</form>
+</div>
+<div id="router_div" style="display:none">
+	<form action="a.jsp" >
+	<div id="show_operation"></div>
+	路由id:<input type="text" name="node_id" id="router_id" value="" readonly/><br>
+	名称:<input type="text" name="node_label" id="router_label" value="" onkeyup="node_label_change(this)"/><br>
+	<input type="submit" value="保存这个路由器"/>
+	</form>
+</div>
+<hr>
+<input type="button" value="批量提交" onclick="node_label_change(this)"/>
+</body>
+</html>

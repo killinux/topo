@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Graph Editor Demo</title>
+    <meta charset="utf-8">
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- Bower Libraries -->
+    <script src="../bower_components/webcomponentsjs/webcomponents.js"></script>
+    <script src="../bower_components/react/react-with-addons.js"></script>
+    <script src="../bower_components/react/react-dom.js"></script>
+    <script src="../bower_components/klayjs-noflo/klay-noflo.js"></script>
+    <script src="../bower_components/hammerjs/hammer.min.js"></script>
+    <script src="../bower_components/ease-djdeath/index.js"></script>
+    <script src="../bower_components/react.animate-djdeath/react.animate.js"></script>
+    <script src="jquery.js"></script><!-- add by haoning-->
+    <!-- Browserify Libraries -->
+    <script src="../build/noflo.js"></script>
+
+    <!-- Custom elements -->
+    <link rel="import" href="../bower_components/polymer/polymer.html">
+    <link rel="import" href="./the-graph-editor.html">
+    <link rel="import" href="../the-graph-nav/the-graph-nav.html">
+
+    <!-- Fonts -->
+    <link rel="stylesheet" href="../bower_components/font-awesome/css/fontello.css">
+    <!--link href='http://fonts.googleapis.com/css?family=Source+Code+Pro:400' rel='stylesheet' type='text/css'-->
+    <style>
+      @font-face {
+        /* we want the svg version */
+        font-family: 'FontAwesomeSVG';
+        src: url('../bower_components/font-awesome/font/fontello.svg') format('svg'),
+          url('../bower_components/font-awesome/font/fontello.eot') format('embedded-opentype'), 
+          url('../bower_components/font-awesome/font/fontello.woff') format('woff'), 
+          url('../bower_components/font-awesome/font/fontello.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+      }
+    </style>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
+
+    <style>
+      html, body {
+        width: 100%;
+        height: 100%;
+      }
+      body {
+        background-color: hsl(189, 47%, 6%);
+        font-family: "SourceCodePro",Helvetica,Arial,sans-serif;
+        overflow: hidden;
+      }
+      #editor {
+        background-color: transparent;
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+      #nav {
+        position: absolute;
+        right: 0px;
+        bottom: 0px;
+      }
+      #testing {
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+    </style>
+
+  </head>
+  <body>
+
+    <the-graph-editor id="editor"
+      width="800" height="600"
+      grid="72"
+      snap="36"
+      theme="light">
+    </the-graph-editor>
+
+    <!--the-graph-nav id="nav" width="216" height="162"></the-graph-nav-->
+
+    <div id="testing" >
+      	<button id="create_vm">新增虚拟机</button>
+	    <button id="create_switch">新增交换机</button>
+	    <button id="create_router">新增路由器</button>
+		<div style="display:block">
+			<button id="autolayout">autolayout</button>
+			<button id="addnode">addnode</button>
+			<button id="addedge">add edge</button>
+			<button id="random">random graph</button>
+			<button id="get">get graph</button>
+			<button id="clear">clear</button>
+			<button id="code_test">code_test</button>
+			<button id="create_edge">create_edge</button>
+		</div>
+    </div>
+    <div id="loading" style="position:absolute; top:10px; left:10px; background-color:white; padding:10px; border-radius:5px;">
+      <img src="loading.gif"/>
+      <div id="loading-message">loading custom elements...</div>
+    </div>
+    <script type="text/javascript">
+      Polymer.veiledElements = ["the-graph-editor"];
+      window.addEventListener('polymer-ready', function() {
+        "use strict";
+
+        // Remove loading message
+        //document.body.removeChild( document.getElementById("loading") );
+		 window.loadGraph = function (json) {
+          var loading = document.getElementById("loading");
+          loading.parentNode.removeChild(loading);
+          var editor = document.getElementById('editor');
+          var graph = json.data ? JSON.parse(json.data.files['noflo.json'].content) : json;
+          var graphString = JSON.stringify(graph);
+          editor.graph = graph;
+        // The graph editor
+       // var editor = document.getElementById('editor');
+
+        // Component library
+		var library = {
+			vm: {
+				name: 'vm',
+				description: 'virtual mechine',
+				icon: 'vm',
+				inports: [
+				  
+				],
+				outports: [
+				  {'name': 'out', 'type': 'all'}
+				]
+			},
+			node_switch: {
+				name: 'switch',
+				description: 'this is a switch',
+				icon: 'switch',
+				inports: [
+				  {'name': 'in', 'type': 'all'},
+				  {'name': 'in1', 'type': 'all'}
+				],
+				outports: [
+				  {'name': 'out', 'type': 'all'}
+				]
+			},
+			router: {
+				name: 'router',
+				description: 'this is a router',
+				icon: 'router',
+				inports: [
+				  {'name': 'in', 'type': 'all'}
+				],
+				outports: [
+				  {'name': 'out', 'type': 'all'}
+				]
+			}
+        };
+        //创建连线：
+        var create_edge=function(vm_id){
+        	var meta = { route: Math.floor(Math.random()*10) };
+        	var newEdge = editor.nofloGraph.addEdge("dom/vm1", "out123", "switch_ext1", "in123", meta);
+        };
+        document.getElementById("create_edge").addEventListener("click",create_edge);
+        //修改图标
+       	editor.update_icon=function(node_id,new_node){
+       		console.log("update_icon---___>");
+        	var make_icon=function(onenode){//更新图标
+            	if(onenode.metadata.type=="switch"){
+		      		if(onenode.metadata.router_external=="true"&&onenode.metadata.shared=="true"){
+		      			return "switch_ext_shared";
+		      		}else if(onenode.metadata.router_external=="true"){
+		      			return "switch_ext";
+		      		}else if(onenode.metadata.shared=="true"){
+		      			return "switch_shared";
+		      		}else{
+		      			return "switch";
+		      		}
+	          	}else{
+	          		return onenode.metadata.type
+	          	}
+            }
+            var this_icon=make_icon(new_node);
+            editor.updateIcon(node_id, this_icon);//修改图标
+        }
+        //创建和选择vm的时候，网络的选择
+		var vm_net_select=function(vm_id){
+        	var vm_nets=window.parent.toporight.document.getElementById("vm_net").innerHTML="";
+        	var initOption = window.parent.toporight.document.createElement("option");
+    		initOption.value=0;
+    		initOption.innerHTML="--请选择网络--";
+    		window.parent.toporight.document.getElementById("vm_net").appendChild(initOption);
+        	var nodes = editor.nofloGraph.nodes;
+        	nodes.forEach(function (node) {//add by hao
+            	if(node.metadata.type=="switch"){
+					var newOption = window.parent.toporight.document.createElement("option");
+					newOption.value=node.id;
+					newOption.innerHTML=node.metadata.label;
+					window.parent.toporight.document.getElementById("vm_net").appendChild(newOption);
+	        	}
+            });
+            window.parent.toporight.document.getElementById("vm_net_list").innerHTML="";
+            editor.nofloGraph.edges.forEach(function(edge){
+            	if(edge.from.node==vm_id){
+            		window.parent.toporight.document.getElementById("vm_net").value=edge.to.node;
+            		window.parent.toporight.document.getElementById("vm_net_list").innerHTML+=JSON.stringify(edge)+"</br>"
+            	}
+            });
+        };
+        document.getElementById("code_test").addEventListener("click",vm_net_select);
+		/*填充右边form
+		*form_node为节点json
+		*operate_type ：新增-修改
+		*/
+		var make_node_form=function(form_node,operate_type){
+			//debug
+		//	return;
+			if(form_node.metadata.type=="vm"){
+				window.parent.toporight.document.getElementById("vm_div").style.display="block";
+				window.parent.toporight.document.getElementById("switch_div").style.display="none";
+				window.parent.toporight.document.getElementById("router_div").style.display="none";
+				
+			    window.parent.toporight.document.getElementById("node_type").value="vm";
+			    window.parent.toporight.document.getElementById("vm_id").value=form_node.metadata.vm_id;
+			    window.parent.toporight.document.getElementById("show_operation").innerHTML=operate_type+"虚拟机";
+			    window.parent.toporight.document.getElementById("vm_label").value=form_node.metadata.label;
+			    vm_net_select(form_node.id);
+			}else if(form_node.metadata.type=="switch"){
+				window.parent.toporight.document.getElementById("vm_div").style.display="none";
+				window.parent.toporight.document.getElementById("switch_div").style.display="block";
+				window.parent.toporight.document.getElementById("router_div").style.display="none";
+				
+				window.parent.toporight.document.getElementById("node_type").value="switch";
+			    window.parent.toporight.document.getElementById("switch_id").value=form_node.metadata.switch_id;
+			    window.parent.toporight.document.getElementById("switch_shared").checked=typeof(form_node.metadata.shared)==("undefined"||"false")?"":"checked";
+			    window.parent.toporight.document.getElementById("switch_ext").checked=typeof(form_node.metadata.router_external)==("undefined"||"false")?"":"checked";
+			  	window.parent.toporight.document.getElementById("show_operation").innerHTML=operate_type+"交换机";
+			  	window.parent.toporight.document.getElementById("switch_label").value=form_node.metadata.label;
+			}else if(form_node.metadata.type=="router"){
+				window.parent.toporight.document.getElementById("vm_div").style.display="none";
+				window.parent.toporight.document.getElementById("switch_div").style.display="none";
+				window.parent.toporight.document.getElementById("router_div").style.display="block";
+				
+				window.parent.toporight.document.getElementById("node_type").value="router";
+			    window.parent.toporight.document.getElementById("router_id").value=form_node.metadata.router_id;
+			    window.parent.toporight.document.getElementById("show_operation").innerHTML=operate_type+"路由器";
+			    window.parent.toporight.document.getElementById("router_label").value=form_node.metadata.label;
+			}
+			//	if(window.parent.toporight.document.getElementById("node_id").value=="undefined"){
+				window.parent.toporight.document.getElementById("element_id").value=form_node.id;//找js元素用的
+			//	}
+		}
+		editor.addEventListener('nodes-select', function(e){
+			// console.log('选中的node >>>', JSON.stringify(e.detail,null,'\t'));
+			var nodes=e.detail;
+			var lastnode=nodes[nodes.length-1];
+			console.log('选中的node >>>>', JSON.stringify(lastnode,null,'\t'));
+			make_node_form(lastnode,"修改");
+		})
+		editor.$.graph.library = library;
+		
+	
+		
+		var x_distance=300;
+		var y_distance=50;
+		var distance=35;
+		//新增vm
+		var create_vm = function () {
+			x_distance=x_distance+distance;
+			y_distance=y_distance+distance;
+			var id = Math.random().toString(36).substr(2)
+			var component ="vm";
+			var metadata = {
+				type:"vm",
+				vm_id:id,
+				label: component,
+				x: x_distance,
+				y: y_distance
+			};
+			var newNode = editor.nofloGraph.addNode(id, component, metadata);
+			make_node_form(editor.nofloGraph.getNode(id),"新增");
+			return newNode;
+        };
+        document.getElementById("create_vm").addEventListener("click", create_vm);
+        //新增switch
+        
+        var create_switch = function () {//component注册后，再出现图标都一样，可能引起页面卡死..
+			x_distance=x_distance+distance;
+			y_distance=y_distance+distance;
+			var id = Math.random().toString(36).substr(2)
+			var component ="node_switch";
+			var metadata = {
+				type:"switch",
+				switch_id:id,
+				router_external:"false",
+	            shared:"true",
+				label: component+"/"+id,
+				x: x_distance,
+				y: y_distance
+			};
+			var newNode = editor.nofloGraph.addNode(id, component, metadata);
+			editor.update_icon(id,newNode);
+			make_node_form(editor.nofloGraph.getNode(id),"新增");
+			return newNode;
+        };
+        document.getElementById("create_switch").addEventListener("click", create_switch);
+        
+         //新增router
+        var create_router = function () {
+			x_distance=x_distance+distance;
+			y_distance=y_distance+distance;
+			var id = Math.random().toString(36).substr(2)
+			var component ="router";
+			var metadata = {
+				type:"router",
+				router_id:id,
+				label: component,
+				x: x_distance,
+				y: y_distance
+			};
+			var newNode = editor.nofloGraph.addNode(id, component, metadata);
+			make_node_form(editor.nofloGraph.getNode(id),"新增");
+			return newNode;
+        };
+        document.getElementById("create_router").addEventListener("click", create_router);
+		
+		// Add node button
+        var addnode = function () {
+          var id = Math.round(Math.random()*100000).toString(36);
+          var component = Math.random() > 0.5 ? 'vm' : 'node_switch';
+          var metadata = {
+            label: component,
+            x: Math.round(Math.random()*800),
+            y: Math.round(Math.random()*600)
+          };
+          var newNode = editor.nofloGraph.addNode(id, component, metadata);
+          return newNode;
+        };
+        document.getElementById("addnode").addEventListener("click", addnode);
+
+        // Add edge button
+        var addedge = function (outNodeID) {
+          var nodes = editor.nofloGraph.nodes;
+          var len = nodes.length;
+          if ( len<1 ) { return; }
+          var node1 = outNodeID || nodes[Math.floor(Math.random()*len)].id;
+          var node2 = nodes[Math.floor(Math.random()*len)].id;
+          var port1 = 'out' + Math.floor(Math.random()*3);
+          var port2 = 'in' + Math.floor(Math.random()*12);
+          var meta = { route: Math.floor(Math.random()*10) };
+          var newEdge = editor.nofloGraph.addEdge(node1, port1, node2, port2, meta);
+          return newEdge;
+        };
+        document.getElementById("addedge").addEventListener("click", addedge);
+
+        // Autolayout button
+        document.getElementById("autolayout").addEventListener("click", function () {
+          editor.triggerAutolayout();
+        });
+        
+        //告警，及网络等需要轮训的操作
+      
+        
+        var errorNodeId=null;
+        var makeRandomError = function () {
+            if (!editor.nofloGraph) { return; }
+            if (errorNodeId) {
+              editor.removeErrorNode(errorNodeId);
+            }
+            var nodes = editor.nofloGraph.nodes;
+            nodes.forEach(function (node) {//add by hao
+            	if(node.metadata.vm_status=="ERROR"){
+            		errorNodeId = node.id;
+	                editor.addErrorNode(errorNodeId);
+	                editor.updateErrorNodes();
+            	}
+            });
+            
+          };
+		window.setInterval(makeRandomError, 3551);
+		makeRandomError();
+
+        // Random graph button
+        document.getElementById("random").addEventListener("click", function () {
+          for (var i=0; i<20; i++) {
+            var node = addnode();
+            addedge(node.id);
+            addedge(node.id);
+          }
+          setTimeout(function(){
+            // b/c ports change
+            editor.libraryRefresh();
+            //editor.triggerAutolayout();
+          }, 500);
+        });
+
+        // Get graph button
+        document.getElementById("get").addEventListener("click", function () {
+          var graphJSON = JSON.stringify(editor.nofloGraph);
+          alert(graphJSON);
+          //you can use the var graphJSON to save the graph definition in a file/database
+        });
+
+        // Clear button
+        document.getElementById("clear").addEventListener("click", function () {
+          graph = {};
+          editor.graph = graph;
+        });
+
+        // Resize to fill window and also have explicit w/h attributes
+        var resize = function () {
+          editor.setAttribute("width", window.innerWidth);
+          editor.setAttribute("height", window.innerHeight);
+        };
+        window.addEventListener("resize", resize);
+		window.editor = editor;
+        resize();
+       }
+       
+/*###########数据获取第二种方法############################### begin*/
+			$.ajax({  
+			type: 'GET',  
+		//	url: "http://192.168.137.37:8081/awstack-resource/v1/topo", 
+			url: "ding.json", 
+			beforeSend: function(request) {
+                        request.setRequestHeader("X-Auth-Token", "fe9b1b3575274c3185dab9779267c3c7");
+            },
+		/*	success: function(data){  
+				//console.log(JSON.parse(data).data);
+				var loadjson=JSON.parse(data).data.data;
+				console.log(JSON.stringify(loadjson));
+				loadGraph(loadjson);
+			},  */
+	    	success: function(loadjson){ 
+	    	    //console.log("aaaaaaaaaaaaaa"); 
+				loadGraph(loadjson);
+			},
+			error:function(e){  
+				alert("error:"+e);  
+			},  
+			dataType: "string"  
+		});  
+/*###########数据获取第二种方法############################### end*/		
+
+      });
+		
+    </script>
+  </body>
+</html>

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Graph Editor Demo</title>
+    <meta charset="utf-8">
+
+    <!-- Bower Libraries -->
+    <script src="../bower_components/webcomponentsjs/webcomponents.js"></script>
+    <script src="../bower_components/react/react-with-addons.js"></script>
+    <script src="../bower_components/react/react-dom.js"></script>
+    <script src="../bower_components/klayjs-noflo/klay-noflo.js"></script>
+    <script src="../bower_components/hammerjs/hammer.min.js"></script>
+    <script src="../bower_components/ease-djdeath/index.js"></script>
+    <script src="../bower_components/react.animate-djdeath/react.animate.js"></script>
+    <script src="jquery.js"></script><!-- add by haoning-->
+    <!-- Browserify Libraries -->
+    <script src="../build/noflo.js"></script>
+
+    <!-- Custom elements -->
+    <link rel="import" href="../bower_components/polymer/polymer.html">
+    <link rel="import" href="./the-graph-editor.html">
+    <link rel="import" href="../the-graph-nav/the-graph-nav.html">
+
+    <!-- Fonts -->
+    <link rel="stylesheet" href="../bower_components/font-awesome/css/fontello.css">
+    <!--link href='http://fonts.googleapis.com/css?family=Source+Code+Pro:400' rel='stylesheet' type='text/css'-->
+    <style>
+      @font-face {
+        /* we want the svg version */
+        font-family: 'FontAwesomeSVG';
+        src: url('../bower_components/font-awesome/font/fontello.svg') format('svg'),
+          url('../bower_components/font-awesome/font/fontello.eot') format('embedded-opentype'), 
+          url('../bower_components/font-awesome/font/fontello.woff') format('woff'), 
+          url('../bower_components/font-awesome/font/fontello.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+      }
+    </style>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
+
+    <style>
+      html, body {
+        width: 100%;
+        height: 100%;
+      }
+      body {
+        background-color: hsl(189, 47%, 6%);
+        font-family: "SourceCodePro",Helvetica,Arial,sans-serif;
+        overflow: hidden;
+      }
+      #editor {
+        background-color: transparent;
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+      #nav {
+        position: absolute;
+        right: 0px;
+        bottom: 0px;
+      }
+      #testing {
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+    </style>
+
+  </head>
+  <body>
+
+    <the-graph-editor id="editor"
+      width="800" height="600"
+      grid="72"
+      snap="36"
+      theme="dark">
+    </the-graph-editor>
+
+    <the-graph-nav id="nav" width="216" height="162"></the-graph-nav>
+
+    <div id="testing">
+      <button id="autolayout">autolayout</button>
+      <button id="addnode">addnode</button>
+      <button id="create_vm">新增虚拟机</button>
+      <button id="create_switch">新增交换机</button>
+      <button id="create_router">新增路由器</button>
+      
+      <button id="addedge">add edge</button>
+      <button id="random">random graph</button>
+      <button id="get">get graph</button>
+      <button id="clear">clear</button>
+    </div>
+    <div id="loading" style="position:absolute; top:10px; left:10px; background-color:white; padding:10px; border-radius:5px;">
+      <img src="loading.gif"/>
+      <div id="loading-message">loading custom elements...</div>
+    </div>
+    <script type="text/javascript">
+      Polymer.veiledElements = ["the-graph-editor"];
+      window.addEventListener('polymer-ready', function() {
+        "use strict";
+
+        // Remove loading message
+        //document.body.removeChild( document.getElementById("loading") );
+		 window.loadGraph = function (json) {
+          var loading = document.getElementById("loading");
+          loading.parentNode.removeChild(loading);
+          var editor = document.getElementById('editor');
+          var graph = json.data ? JSON.parse(json.data.files['noflo.json'].content) : json;
+          var graphString = JSON.stringify(graph);
+          editor.graph = graph;
+        // The graph editor
+       // var editor = document.getElementById('editor');
+
+        // Component library
+        var library = {
+          vm: {
+            name: 'vm',
+            description: 'virtual mechine',
+            icon: 'vm',
+            inports: [
+              
+            ],
+            outports: [
+              {'name': 'out', 'type': 'all'}
+            ]
+          },
+          node_switch: {
+            name: 'switch',
+            description: 'this is a switch',
+            icon: 'switch',
+            inports: [
+              {'name': 'in0', 'type': 'all'}
+            ],
+            outports: [
+              {'name': 'out0', 'type': 'all'}
+            ]
+          },
+          router: {
+            name: 'router',
+            description: 'this is a router',
+            icon: 'router',
+            inports: [
+              {'name': 'in', 'type': 'all'}
+            ],
+            outports: [
+              {'name': 'out', 'type': 'all'}
+            ]
+          }
+        };
+        editor.$.graph.library = library;
+		var x_distance=300;
+		var y_distance=50;
+		var distance=35;
+		//新增vm
+		var create_vm = function () {
+			x_distance=x_distance+distance;
+			y_distance=y_distance+distance;
+			var id = Math.random().toString(36).substr(2)
+			var component ="vm";
+			var metadata = {
+			label: component,
+			x: x_distance,
+			y: y_distance
+			};
+			var newNode = editor.nofloGraph.addNode(id, component, metadata);
+			return newNode;
+        };
+        document.getElementById("create_vm").addEventListener("click", create_vm);
+        //新增switch
+        var create_switch = function () {
+			x_distance=x_distance+distance;
+			y_distance=y_distance+distance;
+			var id = Math.random().toString(36).substr(2)
+			var component ="node_switch";
+			var metadata = {
+				type:"switch",
+				router_external:"false",
+	            shared:"true",
+				label: component,
+				x: x_distance,
+				y: y_distance
+			};
+			var newNode = editor.nofloGraph.addNode(id, component, metadata);
+			console.log(newNode);
+			var make_icon=function(onenode){//更新图标
+            	if(onenode.metadata.type=="switch"){
+		      		if(onenode.metadata.router_external=="true"&&onenode.metadata.shared=="true"){
+		      			return "switch_ext_shared";
+		      		}else if(onenode.metadata.router_external=="true"){
+		      			return "switch_ext";
+		      		}else if(onenode.metadata.shared=="true"){
+		      			return "switch_shared";
+		      		}else{
+		      			return "switch";
+		      		}
+	          	}else{
+	          		return onenode.metadata.type
+	          	}
+            }
+            var this_icon=make_icon(newNode);
+
+            editor.updateIcon(id, this_icon);//修改图标
+			
+			return newNode;
+        };
+        document.getElementById("create_switch").addEventListener("click", create_switch);
+        
+         //新增router
+        var create_router = function () {
+			x_distance=x_distance+distance;
+			y_distance=y_distance+distance;
+			var id = Math.random().toString(36).substr(2)
+			var component ="router";
+			var metadata = {
+				type:"router",
+				label: component,
+				x: x_distance,
+				y: y_distance
+			};
+			var newNode = editor.nofloGraph.addNode(id, component, metadata);
+			return newNode;
+        };
+        document.getElementById("create_router").addEventListener("click", create_router);
+		
+		// Add node button
+        var addnode = function () {
+          var id = Math.round(Math.random()*100000).toString(36);
+          var component = Math.random() > 0.5 ? 'vm' : 'node_switch';
+          var metadata = {
+            label: component,
+            x: Math.round(Math.random()*800),
+            y: Math.round(Math.random()*600)
+          };
+          var newNode = editor.nofloGraph.addNode(id, component, metadata);
+          return newNode;
+        };
+        document.getElementById("addnode").addEventListener("click", addnode);
+
+        // Add edge button
+        var addedge = function (outNodeID) {
+          var nodes = editor.nofloGraph.nodes;
+          var len = nodes.length;
+          if ( len<1 ) { return; }
+          var node1 = outNodeID || nodes[Math.floor(Math.random()*len)].id;
+          var node2 = nodes[Math.floor(Math.random()*len)].id;
+          var port1 = 'out' + Math.floor(Math.random()*3);
+          var port2 = 'in' + Math.floor(Math.random()*12);
+          var meta = { route: Math.floor(Math.random()*10) };
+          var newEdge = editor.nofloGraph.addEdge(node1, port1, node2, port2, meta);
+          return newEdge;
+        };
+        document.getElementById("addedge").addEventListener("click", addedge);
+
+        // Autolayout button
+        document.getElementById("autolayout").addEventListener("click", function () {
+          editor.triggerAutolayout();
+        });
+        
+        //告警
+        var errorNodeId=null;
+        var makeRandomError = function () {
+            if (!editor.nofloGraph) { return; }
+            if (errorNodeId) {
+              editor.removeErrorNode(errorNodeId);
+            }
+            var nodes = editor.nofloGraph.nodes;
+            nodes.forEach(function (node) {//add by hao
+            	if(node.metadata.vm_status=="ERROR"){
+            		errorNodeId = node.id;
+	                editor.addErrorNode(errorNodeId);
+	                editor.updateErrorNodes();
+            	}
+            });
+           
+          };
+          window.setInterval(makeRandomError, 3551);
+          makeRandomError();
+
+        // Random graph button
+        document.getElementById("random").addEventListener("click", function () {
+          for (var i=0; i<20; i++) {
+            var node = addnode();
+            addedge(node.id);
+            addedge(node.id);
+          }
+          setTimeout(function(){
+            // b/c ports change
+            editor.libraryRefresh();
+            //editor.triggerAutolayout();
+          }, 500);
+        });
+
+        // Get graph button
+        document.getElementById("get").addEventListener("click", function () {
+          var graphJSON = JSON.stringify(editor.nofloGraph);
+          alert(graphJSON);
+          //you can use the var graphJSON to save the graph definition in a file/database
+        });
+
+        // Clear button
+        document.getElementById("clear").addEventListener("click", function () {
+          graph = {};
+          editor.graph = graph;
+        });
+
+        // Resize to fill window and also have explicit w/h attributes
+        var resize = function () {
+          editor.setAttribute("width", window.innerWidth);
+          editor.setAttribute("height", window.innerHeight);
+        };
+        window.addEventListener("resize", resize);
+		window.editor = editor;
+        resize();
+       }
+       
+/*###########数据获取第二种方法############################### begin*/
+			$.ajax({  
+			type: 'GET',  
+		//	url: "http://192.168.137.37:8081/awstack-resource/v1/topo", 
+			url: "ding.json", 
+			beforeSend: function(request) {
+                        request.setRequestHeader("X-Auth-Token", "fe9b1b3575274c3185dab9779267c3c7");
+            },
+		/*	success: function(data){  
+				//console.log(JSON.parse(data).data);
+				var loadjson=JSON.parse(data).data.data;
+				console.log(JSON.stringify(loadjson));
+				loadGraph(loadjson);
+			},  */
+	    	success: function(loadjson){ 
+	    	    console.log("aaaaaaaaaaaaaa"); 
+				loadGraph(loadjson);
+			},
+			error:function(e){  
+				alert("error:"+e);  
+			},  
+			dataType: "string"  
+		});  
+/*###########数据获取第二种方法############################### end*/		
+
+      });
+		
+    </script>
+  </body>
+</html>
