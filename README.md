@@ -28,5 +28,5 @@ skip-name-resolve
 #
 如果能连到本地就是成功了
 
-[img]a.jpg[/img]
+![](mytopo.png)
 
