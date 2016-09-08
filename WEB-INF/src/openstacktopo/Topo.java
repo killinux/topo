@@ -26,7 +26,7 @@ public class Topo {
 	}
 	public static Connection getConnection(String db) {
 		//String url = "jdbc:mysql://192.168.139.251:3306/"+db;
-		String url = "jdbc:mysql://localhost:2222/"+db;
+		String url = "jdbc:mysql://127.0.0.1:2222/"+db;
 		System.out.println("haoning:"+url);
 		String username = "root";
 		String password = "haoning";
