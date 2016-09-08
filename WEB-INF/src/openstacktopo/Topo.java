@@ -37,7 +37,7 @@ public class Topo {
 		}
 		return con;
 	}
-	public  Map getInstances() {//»ñÈ¡ÊµÀı
+	public  Map getInstances() {//è·å–å®ä¾‹
 		Map vm_processes=new HashMap();
 		ResultSet rs = null;
 		Connection con = null;
@@ -76,7 +76,7 @@ public class Topo {
 		}
 		return vm_processes;
 	}
-	public  List<JSONObject> get_instance_net() {//»ñÈ¡vmºÍÍøÂçµÄ¹ØÏµ
+	public  List<JSONObject> get_instance_net() {//è·å–vmå’Œç½‘ç»œçš„å…³ç³»
 		List list_i_net=new ArrayList();
 		ResultSet rs = null;
 		Connection con = null;
@@ -96,7 +96,7 @@ public class Topo {
 					JSONArray ja = new JSONArray().fromObject(network_info);
 					for(int i=0;i<ja.size();i++){
 						JSONObject jo= (JSONObject) ja.get(i);
-						//System.out.println(jo.get("id"));//port-id ¡ï¡ï¡ï¡ï¡ï
+						//System.out.println(jo.get("id"));//port-id â˜…â˜…â˜…â˜…â˜…
 						JSONObject network= (JSONObject) jo.get("network");
 						//System.out.println("---------");
 						//System.out.println(((JSONObject)((JSONArray)((JSONObject)((JSONArray)(network.get("subnets"))).get(0)).get("ips")).get(0)).get("address"));
@@ -107,7 +107,7 @@ public class Topo {
 						//System.out.println(network.get("label"));//network-name
 						//System.out.println(network);
 						JSONObject one_connection=new JSONObject();
-						one_connection.put("src", new JSONObject().fromObject("{\"process\":\"switch/"+network.get("id")+"\",\"port\":\""+dhcp_server+"\"}"));//ÓĞport
+						one_connection.put("src", new JSONObject().fromObject("{\"process\":\"switch/"+network.get("id")+"\",\"port\":\""+dhcp_server+"\"}"));//æœ‰port
 						one_connection.put("tgt", new JSONObject().fromObject("{\"process\":\"vm/"+rs.getString("uuid")+"\",\"port\":\""+vm_address+"\"}"));
 					//	System.out.println(one_connection);
 						list_i_net.add(one_connection);
@@ -128,7 +128,7 @@ public class Topo {
 		}
 		return list_i_net;
 	}
-	public  List<JSONObject> get_router_net() {//»ñÈ¡routerºÍÍøÂçµÄ¹ØÏµ
+	public  List<JSONObject> get_router_net() {//è·å–routerå’Œç½‘ç»œçš„å…³ç³»
 		List list_router_net=new ArrayList();
 		ResultSet rs = null;
 		Connection con = null;
@@ -208,7 +208,7 @@ public class Topo {
 		}
 		return routers;
 	}
-	public  Map getNetworkExternal() {//»ñÈ¡ÍøÂçÊÇÍâ²¿ÍøÂçµÄ¼¯ºÏ
+	public  Map getNetworkExternal() {//è·å–ç½‘ç»œæ˜¯å¤–éƒ¨ç½‘ç»œçš„é›†åˆ
 		Map external_map = new HashMap();
 		Connection con = null;
 		ResultSet rs = null;
@@ -237,7 +237,7 @@ public class Topo {
 		//System.out.println(external_map.size());
 		return external_map;
 	}
-	public  Map getNetworkShared() {//»ñÈ¡ÍøÂçÊÇ¹²ÏíÍøÂçµÄ¼¯ºÏ
+	public  Map getNetworkShared() {//è·å–ç½‘ç»œæ˜¯å…±äº«ç½‘ç»œçš„é›†åˆ
 		Map shared_map = new HashMap();
 		Connection con = null;
 		ResultSet rs = null;
