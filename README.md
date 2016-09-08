@@ -11,5 +11,5 @@ mysql 配置文件修改
 /etc/my.conf
 [mysqld]
 skip-name-resolve
-#bind-address = 192.168.139.251
+\#bind-address = 192.168.139.251
 
