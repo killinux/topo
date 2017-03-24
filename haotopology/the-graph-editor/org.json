@@ -1,0 +1,290 @@
+{
+  "properties": {
+    "environment": {
+      "runtime": "html",
+      "content": "haha",
+      "width": 300,
+      "height": 300,
+      "src": "./preview/iframe.html"
+    },
+    "name": "NoFlo"
+  },
+  "exports": [],
+  "groups": [
+    {
+      "name": "node1", 
+      "nodes": ["dom/vm1", "switch/730adb15-1f8a-4de1-bc2d-e64631098ce5","router1"],
+      "metadata": {
+        "description": "the same network",
+        "color": 3
+      }
+    }
+  ],
+
+"processes":{
+        "vm/zhuangzj":{
+            "component":"vm/zhuangzj",
+            "metadata":{
+            	"type":"vm",
+                "vm_id":"zhuangzj",
+                "vm_status":"ERROR",
+                "x":120,
+                "y":561,
+                "width":72,
+                "label":"庄泽建"
+            }
+        },
+	"vm/daijing":{
+            "component":"vm/daijing",
+            "metadata":{
+                "type":"vm",
+                "vm_id":"daijing",
+                "x":120,
+                "y":661,
+                "width":72,
+                "label":"代静"
+            }
+        },
+	"switch/cuilei":{
+            "component":"switch/cuilei",
+            "metadata":{
+                "type":"switch",
+		"vm_status":"ERROR",
+                "x":720,
+                "y":623,
+                "switch_id":"cuilei",
+                "label":"崔磊"
+            }
+        },
+        "switch/guoshan":{
+            "component":"switch/guoshan",
+            "metadata":{
+            	"type":"switch",
+                "x":360,
+                "y":515,
+                "switch_id":"guoshan",
+                "label":"郭珊"
+            }
+        },
+
+	"switch/xiaobo":{
+            "component":"switch/xiaobo",
+            "metadata":{
+                "type":"switch",
+                "x":360,
+                "y":515,
+                "switch_id":"xiaobo",
+                "label":"肖波"
+            }
+        },
+	"switch/dangcb":{
+            "component":"switch/dangcb",
+            "metadata":{
+                "type":"switch",
+                "x":360,
+                "y":515,
+                "switch_id":"dangcb",
+                "label":"党传彪"
+            }
+        },
+        "router/duhuan":{
+            "component":"router/duhuan",
+            "metadata":{
+                "type":"router",
+                "x":720,
+                "y":623,
+                "router_id":"duhuan",
+                "label":"杜欢"
+            }
+        },
+	"router/zhangjl":{
+            "component":"router/zhangjl",
+            "metadata":{
+                "type":"router",
+                "x":720,
+                "y":623,
+                "router_id":"zhangjl",
+                "label":"张家龙"
+            }
+        },
+	"router/dinghh":{
+            "component":"router/dinghh",
+            "metadata":{
+                "type":"router",
+                "x":720,
+                "y":623,
+                "router_id":"dinghh",
+                "label":"丁欢欢"
+            }
+        },
+	"router/zhaolijun":{
+            "component":"router/zhaolijun",
+            "metadata":{
+                "type":"router",
+                "x":720,
+                "y":623,
+                "router_id":"zhaolijun",
+                "label":"赵利军"
+            }
+        },
+        "switch/haoning":{
+            "component":"switch/haoning",
+            "metadata":{
+            	"type":"switch",
+		"router_external":"true",
+		"shared":"true",
+                "x":360,
+                "y":704,
+                "width":72,
+                "switch_id":"haoning",
+                "label":"郝宁"
+            }
+        }
+    },
+    "connections":[
+    	{
+            "src":{
+                "process":"router/zhaolijun",
+                "port":"out"
+            },
+            "tgt":{
+                "process":"vm/daijing",
+                "port":"in"
+            },
+	    "metadata":{
+		"route": "3"
+            }
+           
+        },
+        {
+            "src":{
+                "process":"router/ea0107c7-b3d8-489b-a587-2901266317ce",
+                "port":"out"
+            },
+            "tgt":{
+                "process":"switch/730adb15-1f8a-4de1-bc2d-e64631098ce5",
+                "port":"in"
+            }
+        },
+	{
+            "src":{
+                "process":"router/duhuan",
+                "port":"out"
+            },
+            "tgt":{
+                "process":"switch/cuilei",
+                "port":"in"
+            },
+            "metadata":{
+                "route": "7"
+            }
+        },
+	{
+        "src":{
+                "process":"router/zhangjl",
+                "port":"out"
+            },
+            "tgt":{
+                "process":"switch/guoshan",
+                "port":"in"
+            },
+            "metadata":{
+                "route": "7"
+            }
+        },
+	 {
+        "src":{
+                "process":"switch/guoshan",
+                "port":"out"
+            },
+            "tgt":{
+                "process":"vm/zhuangzj",
+                "port":"in"
+            },
+            "metadata":{
+                "route": "3"
+            }
+        },
+	
+	{
+        "src":{
+                "process":"router/dinghh",
+                "port":"out"
+            },
+            "tgt":{
+                "process":"switch/xiaobo",
+                "port":"in"
+            },
+            "metadata":{
+                "route": "7"
+            }
+        },
+	{
+        "src":{
+                "process":"router/dinghh",
+                "port":"out"
+            },
+            "tgt":{
+                "process":"switch/dangcb",
+                "port":"in"
+            },
+            "metadata":{
+                "route": "7"
+            }
+        },
+
+	{
+            "src":{
+                "process":"switch/haoning",
+                "port":"out"
+            },
+            "tgt":{
+                "process":"router/duhuan",
+                "port":"in"
+            },
+            "metadata":{
+                "route": "2"
+            }
+        },
+        {
+            "src":{
+                "process":"switch/haoning",
+                "port":"out"
+            },
+            "tgt":{
+                "process":"router/zhangjl",
+                "port":"in"
+            },
+            "metadata":{
+                "route": "2"
+            }
+        },
+        {
+            "src":{
+                "process":"switch/haoning",
+                "port":"out"
+            },
+            "tgt":{
+                "process":"router/dinghh",
+                "port":"in"
+            },
+            "metadata":{
+                "route": "2"
+            }
+        },
+        {
+            "src":{
+                "process":"switch/haoning",
+                "port":"out"
+            },
+            "tgt":{
+                "process":"router/zhaolijun",
+                "port":"in"
+            },
+            "metadata":{
+                "route": "2"
+            }
+        }
+    ]
+}
+
