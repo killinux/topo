@@ -22,6 +22,17 @@
   ],
 
 "processes":{
+	"vm/cuilei":{
+            "component":"vm/cuilei",
+            "metadata":{
+                "type":"vm",
+		"vm_status":"ERROR",
+                "x":720,
+                "y":623,
+                "vm_id":"cuilei",
+                "label":"苏移项目"
+            }
+        },
         "vm/zhuangzj":{
             "component":"vm/zhuangzj",
             "metadata":{
@@ -31,28 +42,64 @@
                 "x":120,
                 "y":561,
                 "width":72,
-                "label":"庄泽建"
+                "label":"社区人员"
             }
         },
-	"vm/daijing":{
+	"vm/liuxiaoli":{
+            "component":"vm/liuxiaoli",
+            "metadata":{
+                "type":"vm",
+                "vm_id":"liuxiaoli",
+                "vm_status":"ERROR",
+                "x":120,
+                "y":561,
+                "width":72,
+                "label":"日报项目"
+            }
+        },
+	"vm/hanjiabao":{
+            "component":"vm/hanjiabao",
+            "metadata":{
+                "type":"vm",
+                "vm_id":"hanjiabao",
+		"vm_status":"ERROR",
+                "x":120,
+                "y":661,
+                "width":72,
+                "label":"项目开发3"
+            }
+        },
+	 "vm/qiaojian":{
+            "component":"vm/qiaojian",
+            "metadata":{
+                "type":"vm",
+                "vm_id":"qiaojian",
+                "vm_status":"ERROR",
+                "x":120,
+                "y":661,
+                "width":72,
+                "label":"北京研发"
+            }
+        },
+  	"vm/daijing":{
             "component":"vm/daijing",
             "metadata":{
                 "type":"vm",
                 "vm_id":"daijing",
+                "vm_status":"ERROR",
                 "x":120,
                 "y":661,
                 "width":72,
-                "label":"代静"
+                "label":"产品开发"
             }
         },
 	"switch/cuilei":{
             "component":"switch/cuilei",
             "metadata":{
                 "type":"switch",
-		"vm_status":"ERROR",
                 "x":720,
                 "y":623,
-                "switch_id":"cuilei",
+                "vm_id":"cuilei",
                 "label":"崔磊"
             }
         },
@@ -117,6 +164,26 @@
                 "label":"丁欢欢"
             }
         },
+	"router/zhouwei":{
+            "component":"router/zhouwei",
+            "metadata":{
+                "type":"router",
+                "x":720,
+                "y":623,
+                "router_id":"zhouwei",
+                "label":"周伟"
+            }
+        },
+	"router/zhengsheng":{
+            "component":"router/zhengsheng",
+            "metadata":{
+                "type":"router",
+                "x":720,
+                "y":623,
+                "router_id":"zhengsheng",
+                "label":"周征晟"
+            }
+        },
 	"router/zhaolijun":{
             "component":"router/zhaolijun",
             "metadata":{
@@ -156,6 +223,34 @@
             }
            
         },
+	{
+            "src":{
+                "process":"router/zhouwei",
+                "port":"out"
+            },
+            "tgt":{
+                "process":"vm/hanjiabao",
+                "port":"in"
+            },
+            "metadata":{
+                "route": "3"
+            }
+
+        },
+	{
+            "src":{
+                "process":"router/dinghh",
+                "port":"out"
+            },
+            "tgt":{
+                "process":"vm/liuxiaoli",
+                "port":"in"
+            },
+            "metadata":{
+                "route": "3"
+            }
+        
+        },
         {
             "src":{
                 "process":"router/ea0107c7-b3d8-489b-a587-2901266317ce",
@@ -164,6 +259,19 @@
             "tgt":{
                 "process":"switch/730adb15-1f8a-4de1-bc2d-e64631098ce5",
                 "port":"in"
+            }
+        },
+	{
+            "src":{
+                "process":"router/duhuan",
+                "port":"out"
+            },
+            "tgt":{
+                "process":"vm/cuilei",
+                "port":"in"
+            },
+            "metadata":{
+                "route": "3"
             }
         },
 	{
@@ -186,6 +294,19 @@
             },
             "tgt":{
                 "process":"switch/guoshan",
+                "port":"in"
+            },
+            "metadata":{
+                "route": "7"
+            }
+        },
+	{
+            "src":{
+                "process":"router/zhangjl",
+                "port":"out"
+            },
+            "tgt":{
+                "process":"switch/yedongcan",
                 "port":"in"
             },
             "metadata":{
@@ -283,6 +404,46 @@
             },
             "metadata":{
                 "route": "2"
+            }
+        },
+        {
+            "src":{
+                "process":"switch/haoning",
+                "port":"out"
+            },
+            "tgt":{
+                "process":"router/zhouwei",
+                "port":"in"
+            },
+            "metadata":{
+                "route": "2"
+            }
+        },
+        {
+            "src":{
+                "process":"switch/haoning",
+                "port":"out"
+            },
+            "tgt":{
+                "process":"router/zhengsheng",
+                "port":"in"
+            },
+            "metadata":{
+                "route": "2"
+            }
+        }
+	,
+        {
+            "src":{
+                "process":"router/zhengsheng",
+                "port":"out"
+            },
+            "tgt":{
+                "process":"vm/qiaojian",
+                "port":"in"
+            },
+            "metadata":{
+                "route": "3"
             }
         }
     ]
